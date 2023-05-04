@@ -1,0 +1,9 @@
+.vscode/
+*.swo
+*.swp
+*.jpg
+*.png
+*.pdf
+.idea/
+venv/
+.venv/
