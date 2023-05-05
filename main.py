@@ -1,3 +1,4 @@
+import json
 import os
 import requests
 from bs4 import BeautifulSoup
@@ -128,6 +129,7 @@ def main():
         print(Fore.WHITE + 'Enter s to search a new manga, n for next chapter, p for previous chapter,'
               ' S for select a specific episode, or q to quit:')
         option = input().lower()
+        track_chapter(manga_title, chapter_number, chapter)
         if option == 's':
             print('Please enter the name of the manga you want to read: ')
             manga_title = input()
@@ -193,5 +195,60 @@ def main():
     exit()
 
 
-if __name__ == '__main__':
-    main()
+def track_chapter(manga_title, chapter_number, chapters_link):
+    # verify if the file user_data.json exists
+    if not os.path.isfile('user_data.json'):
+        user_data = {}
+        # create the file if it doesn't exist
+        with open('user_data.json', 'w') as f:
+            json.dump(user_data, f)
+        return False
+
+    with open('user_data.json', 'r') as f:
+        user_data = json.load(f)
+        titles = user_data.keys()
+        if manga_title not in titles:
+            user_data[manga_title] = [chapter_number, chapters_link]
+        else:
+            user_data[manga_title][0] = chapter_number
+
+        with open('user_data.json', 'w') as f:
+            json.dump(user_data, f)
+
+
+def read_manga_from_history():
+    # verify if the file user_data.json exists
+    if not os.path.isfile('user_data.json'):
+        print('You have no history.')
+        return False
+    print('Please chose a manga from your history:')
+    with open('user_data.json', 'r') as f:
+        # show only the titles of the mangas
+        user_data = json.load(f)
+        keys = user_data.keys()
+        for i in range(len(keys)):
+            print(str(i+1) + ') ' + list(keys)[i])
+        title = input()
+        # verify if the input is valid
+        if title.isdigit():
+            title = int(title)
+            if title > len(keys) or title < 1:
+                print('Please enter a valid number.')
+                return False
+            title = list(keys)[title-1]
+            # get the last chapter read
+            chapter = user_data[title][0] + 1
+            # get the link of the chapters
+            chapters_link = user_data[title][1]
+            # open the chapter
+            images = open_chapter(chapters_link[chapter][1])
+            merge_images(images, title + ' ' + str(chapter))
+
+        else:
+            print('Please enter a valid number.')
+            return False
+
+
+read_manga_from_history()
+# if __name__ == '__main__':
+#     main()
